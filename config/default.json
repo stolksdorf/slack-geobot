@@ -1,3 +1,7 @@
 {
-
+	"slack_token" : "",
+	"bot" : {
+		"icon" : ":earth_americas:",
+		"name" : "geobot"
+	}
 }

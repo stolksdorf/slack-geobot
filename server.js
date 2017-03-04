@@ -12,7 +12,26 @@ const config = require('nconf')
 
 
 
-app.get('/', (req, res) => {
+const Slack = require('./slack.api.js')(config.get('slack_token'), config.get('bot'));
+
+Slack.openSocket((msg)=>{
+	console.log(msg);
+
+	Slack.directMessage('scott', "yo");
+})
+
+
+
+
+
+
+app.get('/log/:user', (req, res) => {
+	console.log(req.params.user);
+
+	console.log(req.query);
+
+	Slack.directMessage(req.params.user, `got your geo! ${req.query.lat} ${req.query.lon}`);
+
 	return res.status(200).send('working');
 });
 
