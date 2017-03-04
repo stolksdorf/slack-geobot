@@ -1,2 +1,2 @@
 # slack-geobot
-Leave geo-sensitivemessages for your friends on slack
+Leave geo-sensitive messages for your friends on slack
