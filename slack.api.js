@@ -53,7 +53,7 @@ const Slack = function(token, botInfo){
 				});
 		},
 		reply : (channel, text) => {
-			slack.api('chat.postMessage', {
+			return slack.api('chat.postMessage', {
 				channel : channel,
 				text : text,
 				username   : botInfo.name,
@@ -64,7 +64,7 @@ const Slack = function(token, botInfo){
 			const userChannel = _.findKey(slack.dms, (dm)=>{
 				return dm == user;
 			});
-			slack.reply(userChannel, text);
+			return slack.reply(userChannel, text);
 		},
 		openSocket : (handler) => {
 			slack.api('rtm.start')

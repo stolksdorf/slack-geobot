@@ -1,5 +1,6 @@
 {
 	"slack_token" : "",
+	"distance" : 40,
 	"bot" : {
 		"icon" : ":earth_americas:",
 		"name" : "geobot"

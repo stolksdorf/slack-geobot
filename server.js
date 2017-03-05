@@ -10,27 +10,46 @@ const config = require('nconf')
 	.file('defaults', { file: 'config/default.json' });
 
 
+const Geobot = require('./geobot.js');
+const Storage = require('./storage.js');
 
 
-const Slack = require('./slack.api.js')(config.get('slack_token'), config.get('bot'));
 
-Slack.openSocket((msg)=>{
-	console.log(msg);
+app.get('/test', (req, res)=>{
+	Geobot.sendWelcome('scott');
+	return res.send();
+});
 
-	Slack.directMessage('scott', "yo");
+app.get('/clear', (req, res) => {
+	Storage.clearAll();
+
+	console.log('cleared!');
+
+	return res.send();
+});
+
+app.get('/msg/:user', (req, res)=>{
+	Geobot.checkMessagesForUser(req.params.user);
+
+	return res.send();
 })
 
 
 
-
-
-
 app.get('/log/:user', (req, res) => {
-	console.log(req.params.user);
+	const user = req.params.user;
 
 	console.log(req.query);
 
-	Slack.directMessage(req.params.user, `got your geo! ${req.query.lat} ${req.query.lon}`);
+
+	Storage.getGeo(user)
+		.then((geo)=>{
+			console.log('geo', geo);
+			if(!geo) Geobot.sendWelcome(user);
+			return Storage.setGeo(user, req.query.lat, req.query.lon);
+		})
+
+	//Geobot.dm(req.params.user, `got your geo! ${req.query.lat} ${req.query.lon}`);
 
 	return res.status(200).send('working');
 });
