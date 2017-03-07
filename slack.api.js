@@ -1,3 +1,6 @@
+//TODO: Convert into a singleton object
+//TODO: Add a general event emitter
+
 const request = require('superagent-promise')(require('superagent'), Promise);
 const _ = require('lodash');
 const WebSocket = require('ws');
@@ -14,9 +17,12 @@ const Slack = function(token, botInfo){
 		_.each(teamData.channels, (channel)=>{ slack.channels[channel.id] = channel.name; });
 		_.each(teamData.groups,   (channel)=>{ slack.channels[channel.id] = channel.name; });
 		_.each(teamData.users,    (user)   =>{ slack.users[user.id] = user.name; });
+
+		//TODO: Change to dms?
 		_.each(teamData.ims,      (im)     =>{ slack.dms[im.id] = slack.users[im.user]});
 	};
 
+	//TODO: change to 'event' ?
 	const processIncomingMsg = function(msg){
 		const res = _.assign({}, msg);
 

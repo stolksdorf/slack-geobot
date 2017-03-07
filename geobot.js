@@ -2,7 +2,8 @@ const _ = require('lodash');
 const config = require('nconf');
 const Moment = require('moment');
 
-const Messages = require('./messages.send.js');
+const Messages = require('./messages.js');
+const Commands = require('./commands.js');
 const dist = require('./distance.js')
 const Storage = require('./storage.js');
 const Slack = require('./slack.api.js')(config.get('slack_token'), config.get('bot'));
