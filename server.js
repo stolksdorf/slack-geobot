@@ -13,7 +13,7 @@ const config = require('nconf')
 const Geobot = require('./geobot.js');
 const Storage = require('./storage.js');
 
-
+//////////////////////////
 
 app.get('/test', (req, res)=>{
 	Geobot.sendWelcome('scott');
@@ -34,26 +34,17 @@ app.get('/msg/:user', (req, res)=>{
 	return res.send();
 })
 
+///////////////////`
 
+
+Geobot.start();
 
 app.get('/log/:user', (req, res) => {
 	const user = req.params.user;
-
-	console.log(req.query);
-
-
-	Storage.getGeo(user)
-		.then((geo)=>{
-			console.log('geo', geo);
-			if(!geo) Geobot.sendWelcome(user);
-			return Storage.setGeo(user, req.query.lat, req.query.lon);
-		})
-
-	//Geobot.dm(req.params.user, `got your geo! ${req.query.lat} ${req.query.lon}`);
-
+	Geobot.storeGeo(user, req.query.lat, req.query.lon);
+	Geobot.dm(req.params.user, `got your geo! ${req.query.lat} ${req.query.lon}`);
 	return res.status(200).send('working');
 });
-
 
 
 const PORT = process.env.PORT || 8000;

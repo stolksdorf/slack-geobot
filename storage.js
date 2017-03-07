@@ -33,25 +33,57 @@ module.exports = storage = {
 			});
 		});
 	},
+	del : (key)=>{
+		return new Promise((resolve, reject)=>{
+			redis.del(`${PREFIX}|${key}`, (err)=>{
+				if(err) return reject(err);
+				return resolve();
+			});
+		});
+	},
 
-	clearAll : ()=>{
-		redis.keys(`${PREFIX}*`, (err, keys)=>{
-			console.log(keys);
-			_.each(keys, (key)=>redis.del(key));
+	delAll : ()=>{
+		return new Promise((resolve, reject)=>{
+			redis.keys(`${PREFIX}*`, (err, keys)=>{
+				const fns = _.map(keys, (key)=>{
+					return new Promise((resolve, reject)=>{
+						redis.del(key, (err)=>{
+							if(err) return reject();
+							resolve();
+						});
+					});
+				});
+				resolve(Promise.all(fns))
+			})
+
 		})
 	},
 
 	hasGeo : (user) => storage.getGeo(user).then((geo)=>!!geo),
 	getGeo : (user) => storage.get(`geo|${user}`),
 	setGeo : (user, geo) => storage.set(`geo|${user}`, geo),
+	delGeo : (user) => storage.del(`geo|${user}`, geo),
+
+	getGeos : (users)=>{
+		return Promise.all(_.map(users, (user)=>storage.getGeo(user)))
+			.then((geos)=>{
+				return _.reduce(geos, (r, geo, idx)=>{
+					r[users[idx]] = geo;
+					return r;
+				}, {});
+			});
+	},
+
+	//getAllGeos
 
 	getMsgs : (user) => storage.get(`msg|${user}`),
+	setMsgs : (user, val) => storage.set(`msg|${user}`, val || []),
 	setMsg  : (user, msgObj) => {
 		return storage.getMsgs(user)
 			.then((msgs) => {
 				msgs = msgs || [];
 				msgs.push(msgObj);
-				return storage.set(`msg|${user}`, msgs);
+				return storage.setMsgs(user, msgs);
 			})
 	}
 

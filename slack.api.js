@@ -67,25 +67,24 @@ const Slack = function(token, botInfo){
 			return slack.reply(userChannel, text);
 		},
 		openSocket : (handler) => {
-			slack.api('rtm.start')
+			return slack.api('rtm.start')
 				.then((res) => {
-					if (!res.body.ok || !res.body.url) throw `bad access token for removing`; //LOGBOT
-					processTeamData(res.body);
-					socket = new WebSocket(res.body.url);
-					socket.on('open', () => {
-						console.log('Socket connected');
+					return new Promise((resolve, reject)=>{
+						if (!res.body.ok || !res.body.url) return reject(`bad access token`);
+
+						processTeamData(res.body);
+						socket = new WebSocket(res.body.url);
+
+						socket.on('open', resolve);
+						socket.on('message', (rawData, flags) => {
+							const msg = JSON.parse(rawData);
+							if(msg.bot_id === slack.botId) return;
+							const message = processIncomingMsg(msg);
+							if(message.user == 'logbot') return;
+							if(message.type !== 'message') return;
+							handler(message);
+						});
 					});
-					socket.on('message', (rawData, flags) => {
-						const msg = JSON.parse(rawData);
-						if(msg.bot_id === slack.botId) return;
-						const message = processIncomingMsg(msg);
-						if(message.user == 'logbot') return;
-						if(message.type !== 'message') return;
-						handler(message);
-					});
-				})
-				.catch((err)=>{
-					console.log(err.toString());
 				})
 		},
 	}
