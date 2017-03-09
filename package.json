@@ -27,7 +27,6 @@
     "nconf": "^0.8.4",
     "redis": "^2.6.5",
     "superagent": "^3.5.0",
-    "superagent-promise": "^1.1.0",
     "ws": "^2.2.0"
   },
   "devDependencies": {
