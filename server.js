@@ -37,7 +37,6 @@ app.get('/msg/:user', (req, res)=>{
 ///////////////////`
 
 
-Geobot.start();
 
 app.get('/log/:user', (req, res) => {
 	const user = req.params.user;
@@ -48,6 +47,10 @@ app.get('/log/:user', (req, res) => {
 
 
 const PORT = process.env.PORT || 8000;
-const httpServer = app.listen(PORT, () => {
-	console.log(`server on port:${PORT}`);
-});
+
+Geobot.start()
+	.then(()=>{
+		const httpServer = app.listen(PORT, () => {
+			console.log(`server on port:${PORT}`);
+		});
+	});

@@ -6,9 +6,7 @@ const Messages = require('./messages.js');
 const Commands = require('./commands.js');
 const dist = require('./distance.js')
 const Storage = require('./storage.js');
-const Slack = require('./slack.api.js')(config.get('slack_token'), config.get('bot'));
-
-
+const Slack = require('./slack.api.js');
 
 
 //TODO: move these into a utils
@@ -44,13 +42,16 @@ const msgHas = (msg, ...filters)=>{
 
 const Geobot = {
 	start : ()=>{
-		return Slack.openSocket(Geobot.handler)
+		Slack.on('message', Geobot.handler);
+		//Slack.on('reaction_added', Geobot.handler);
+		return Slack.connect(config.get('slack_token'), config.get('bot'))
 			.then(()=>Geobot.checkOldGeos())
 			.then(()=>console.log('Geobot ready!'))
 	},
 	handler : (msg) =>{
-		const isCmd = msgHas(msg.text, ['geobot', Geobot.getSlackId()]); //and from me
-
+		console.log(msg);
+		const isCmd = msgHas(msg.text, ['geobot', Slack.botId]) && msg.user == 'scott';
+		if(isCmd) return Commands.execute(msg)
 
 
 		console.log('isCmd', isCmd);
@@ -59,14 +60,13 @@ const Geobot = {
 
 		console.log(Slack.users);
 
-		console.log(Geobot.getSlackId());
 
 		console.log(getTargets(msg));
 
 
 	},
-	getSlackId : ()=>_.findKey(Slack.users, (name, id)=>name=='geobot'),
 
+	send : require('./messages.js'),
 
 	//////
 
@@ -115,6 +115,8 @@ const Geobot = {
 			const geo = res[0];
 			const msgs = res[1];
 
+			//TODO: Add check for no geo, or no messages
+
 			console.log('geo and msgs', geo, msgs);
 
 			const sorted = sortMessagesByDistance(msgs, geo);
@@ -132,26 +134,26 @@ const Geobot = {
 
 
 	checkOldGeos : ()=>{
-		return Storage.getGeos(_.keys(Slack.users))
+		return Storage.getGeos(Slack.users)
 			.then((geos)=>{
 				return Promise.all(_.map(geos, (geo, user)=>{
 					if(!geo) return;
 
 					//TODO; make work
-					const isOld = Moment(geo.ts).isAfter(Moment().subtract(1, 'hours'));
-					if(isOld){
-						return Storage.delGeo(user)
-							.then(()=>Geobot.send.warning(user));
-					}
+					//const isOld = Moment(geo.ts).isAfter(Moment().subtract(1, 'hours'));
+					//if(isOld) return Storage.delGeo(user).then(()=>Geobot.send.warning(user));
 				}));
-			});
+			}).catch((err)=>console.log(err))
 	},
-
-
 
 
 	//dev
 	dm : Slack.directMessage
 };
+
+
+setTimeout(()=>{
+	Geobot.storeGeo('scott', 45, 56);
+}, 500);
 
 module.exports = Geobot;

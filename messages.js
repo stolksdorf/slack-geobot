@@ -1,39 +1,37 @@
 const Moment = require('moment');
+const Slack = require('./slack.api.js');
 
 
-module.exports = (Slack)=>{
+module.exports = {
+	welcome : (user)=>{
+		return console.log(`Looks like you aren't sending up your GPS, let's get you setup`);
 
-	return {
-		welcome : (user)=>{
-			return console.log(`Looks like you aren't sending up your GPS, let's get you setup`);
+		return Slack.msg(user, '')
+	},
 
-			return Slack.directMessage(user, '')
-		},
+	firstGeo : (user)=>{
+		return console.log('first GPS!');
 
-		firstGeo : (user)=>{
-			return console.log('first GPS!');
+		return Slack.msg(user,
+			`I just received your first GPS! Looks like everything is working :)`
+		)
+	},
 
-			return Slack.directMessage(user,
-				`I just received your first GPS! Looks like everything is working :)`
-			)
-		},
-
-		geomessage : (user, msg)=>{
-			return Slack.directMessage(user,
+	geomessage : (user, msg)=>{
+		return Slack.msg(user,
 `*${msg.author}* says:
 > ${msg.text}
 
 _sent on ${Moment(msg.ts).format('MMM Do H:mm')}_`
-			);
+		);
 
-		},
+	},
 
-		warning : (user)=>{
-			console.log('I have not gotten a GPS update in a while, double check everything is working?');
-		},
+	warning : (user)=>{
+		console.log('I have not gotten a GPS update in a while, double check everything is working?');
+	},
 
-		confirm : (user, targets, msg)=>{
-			return console.log('Send confirm!', user);
-		},
-	}
-};
+	confirm : (user, targets, msg)=>{
+		return console.log('Send confirm!', user);
+	},
+}

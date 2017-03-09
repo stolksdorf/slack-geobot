@@ -62,19 +62,14 @@ module.exports = storage = {
 	hasGeo : (user) => storage.getGeo(user).then((geo)=>!!geo),
 	getGeo : (user) => storage.get(`geo|${user}`),
 	setGeo : (user, geo) => storage.set(`geo|${user}`, geo),
-	delGeo : (user) => storage.del(`geo|${user}`, geo),
+	delGeo : (user) => storage.del(`geo|${user}`),
 
 	getGeos : (users)=>{
-		return Promise.all(_.map(users, (user)=>storage.getGeo(user)))
-			.then((geos)=>{
-				return _.reduce(geos, (r, geo, idx)=>{
-					r[users[idx]] = geo;
-					return r;
-				}, {});
-			});
+		return Promise.all(_.map(users, (user)=>{
+				return storage.getGeo(user).then((geo)=>[user, geo])
+			}))
+			.then((pairs)=>_.fromPairs(pairs));
 	},
-
-	//getAllGeos
 
 	getMsgs : (user) => storage.get(`msg|${user}`),
 	setMsgs : (user, val) => storage.set(`msg|${user}`, val || []),
@@ -85,6 +80,11 @@ module.exports = storage = {
 				msgs.push(msgObj);
 				return storage.setMsgs(user, msgs);
 			})
-	}
+	},
+
+
+	setPending : (id, msg, geo)=>{},
+	delPending : (id)=>{},
+	convertPending : (id)=>{}
 
 };
