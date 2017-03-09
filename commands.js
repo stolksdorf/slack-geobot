@@ -15,22 +15,22 @@ const msgHas = (msg, ...filters)=>{
 
 const Commands = {
 	execute : (msg)=>{
-		if(msgHas(msg.text, ['list', 'display'], ['all', 'every'], ['geo', 'position', 'pos'])){
+		if(msgHas(msg.text, ['list', 'display', 'get', 'show'], /*['all', 'every'],*/ ['geo', 'position', 'pos'])){
 			return Commands.listGeos();
 		}
 
 	},
 
 	listGeos : ()=>{
-		console.log('here');
-		Storage.getGeos(Slack.users)
+		return Storage.getGeos(Slack.users)
 			.then((geos, user)=>{
-				console.log(geos);
-				_.map(geos, (geo)=>{
-					console.log(geo);
-				})
-			})
+				const text = _.map(geos, (geo, user)=>{
+					if(!geo) return `${user} : _none_`;
 
+					return `${user} : \`${geo.lat}, ${geo.lon}\` - _${Moment(geo.ts).fromNow()}_`;
+				}).join('\n');
+				return Slack.msg('scott', text);
+			});
 	}
 
 

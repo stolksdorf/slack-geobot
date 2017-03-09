@@ -153,7 +153,7 @@ const Geobot = {
 
 
 setTimeout(()=>{
-	Geobot.storeGeo('scott', 45, 56);
+	//Geobot.storeGeo('scott', 45, 56);
 }, 500);
 
 module.exports = Geobot;
