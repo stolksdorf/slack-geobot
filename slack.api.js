@@ -57,11 +57,11 @@ const Slack = {
 		Slack.info = botInfo;
 
 		return Slack.api('rtm.start')
-			.then((res) => {
+			.then((data) => {
 				return new Promise((resolve, reject)=>{
-					if (!res.body.ok || !res.body.url) return reject(`bad access token`);
-					processTeamData(res.body);
-					socket = new WebSocket(res.body.url);
+					if (!data.ok || !data.url) return reject(`bad access token`);
+					processTeamData(data);
+					socket = new WebSocket(data.url);
 
 					socket.on('open', resolve);
 					socket.on('message', (rawData, flags) => {
@@ -81,7 +81,7 @@ const Slack = {
 				.query(_.assign({}, payload, { token : Slack.token }))
 				.end((err, res)=>{
 					if(err || res.body && res.body.ok === false) return reject(err || res.body.error);
-					return resolve(res);
+					return resolve(res.body);
 				});
 		});
 	},
@@ -97,14 +97,11 @@ const Slack = {
 		})
 	},
 
-	react : (msgTS, emoji)=>{
-		const dm = _.findKey(Slack.dms, (user)=>target == user);
-		//TODO: Make this add a reaction
-		return Slack.api('chat.postMessage', {
-			channel    : (dm || target),
-			text       : text,
-			username   : Slack.info.name,
-			icon_emoji : Slack.info.icon
+	react : (msg, emoji)=>{
+		return Slack.api('reactions.add', {
+			channel   : msg.channelId || msg.channel,
+			name      : emoji,
+			timestamp : msg.ts
 		});
 	},
 

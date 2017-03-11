@@ -42,31 +42,30 @@ const msgHas = (msg, ...filters)=>{
 
 const Geobot = {
 	start : ()=>{
-		Slack.on('message', Geobot.handler);
-		//Slack.on('reaction_added', Geobot.handler);
-		return Slack.connect(config.get('slack_token'), config.get('bot'))
+		Slack.on('message', Geobot.msgHandler);
+		Slack.on('reaction_added', Geobot.reactionHandler);
+		return Storage.connect()
+			.then(()=>Slack.connect(config.get('slack_token'), config.get('bot')))
 			.then(()=>Geobot.checkOldGeos())
 			.then(()=>console.log('Geobot ready!'))
 	},
-	handler : (msg) =>{
-		console.log(msg);
+	msgHandler : (msg) =>{
 		const isCmd = msgHas(msg.text, ['geobot', Slack.botId]) && msg.user == 'scott';
-		if(isCmd) return Commands.execute(msg)
+		if(isCmd) return Commands.execute(msg);
 
+		if(msg.type == 'message'){
+			Geobot.send.confirm(msg.user);
 
-		console.log('isCmd', isCmd);
+		}
 
-		console.log(msg.text);
-
-		console.log(Slack.users);
-
-
-		console.log(getTargets(msg));
 
 
 	},
+	reactionHandler : (msg)=>{
+		console.log(msg);
+	},
 
-	send : require('./messages.js'),
+	send : Messages,
 
 	//////
 
@@ -144,6 +143,23 @@ const Geobot = {
 					//if(isOld) return Storage.delGeo(user).then(()=>Geobot.send.warning(user));
 				}));
 			}).catch((err)=>console.log(err))
+	},
+
+	confirmMessage : (msg, geo)=>{
+
+		/*
+
+		Storage.setPending()
+
+		Messages.confirm(msg.user, [], geo, msg.text)
+			.then((confirmMsg)=>{
+				return Storage.setPending(confirmMsg.ts, )
+			})
+
+		//Store the message
+		//send the
+		*/
+
 	},
 
 

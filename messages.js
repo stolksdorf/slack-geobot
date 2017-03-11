@@ -32,6 +32,13 @@ _sent on ${Moment(msg.ts).format('MMM Do H:mm')}_`
 	},
 
 	confirm : (user, targets, msg)=>{
-		return console.log('Send confirm!', user);
+		let confirmMsg;
+		return Slack.msg(user, `
+
+`)
+			.then((_msg)=>{ confirmMsg = _msg})
+			.then(()=>Slack.react(confirmMsg, 'thumbsup'))
+			.then(()=>Slack.react(confirmMsg, 'thumbsdown'))
+			.then(()=>confirmMsg);
 	},
 }

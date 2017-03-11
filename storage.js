@@ -1,22 +1,59 @@
 const _ = require('lodash');
-const redis = require("redis").createClient(process.env.REDIS_URL);
+const redis = require('redis').createClient(process.env.REDIS_URL);
+const mongoose = require('mongoose');
+mongoose.Promise = Promise;
+const dbPath = process.env.MONGODB_URI || process.env.MONGOLAB_URI || 'mongodb://localhost/geobot';
 
-redis.on("error", function(err){
+redis.on('error', (err)=>{
 	redis.end();
 	console.log('REDIS ERROR');
 });
 
-const attemptParse = (json) => {
-	try{
-		return JSON.parse(json);
-	}catch(e){
-		return json;
+
+const GeomessageSchema = mongoose.Schema({
+	text : {type : String, default : ''},
+	author : {type : String, default : ''},
+	recipients : [String],
+
+
+	ts  : { type: Date, default: Date.now },
+	geo : {
+		lat : {type: Number, default:0},
+		lon : {type: Number, default:0}
 	}
+}, {
+	versionKey: false,
+	toJSON : {
+		transform: (doc, ret, options) => {
+			delete ret._id;
+			return ret;
+		}
+	}
+});
+const Geomessage = mongoose.model('Geomessage', GeomessageSchema);
+
+
+const attemptParse = (json) => {
+	try{ return JSON.parse(json); }
+	catch(e){ return json };
 }
 
 const PREFIX = 'geobot';
 
-module.exports = storage = {
+module.exports = Storage = {
+	connect : ()=>{
+
+		if(mongoose.connection.readyState == 1) return Promise.resolve();
+
+		return mongoose.connect(dbPath)
+			.catch((err)=>{
+				console.error('Error : Could not connect to a Mongo Database.');
+				console.error('        If you are running locally, make sure mongodb.exe is running.');
+				throw err;
+			});
+	},
+
+
 	get : (key)=>{
 		return new Promise((resolve, reject)=>{
 			redis.get(`${PREFIX}|${key}`, (err, res)=>{
@@ -59,32 +96,32 @@ module.exports = storage = {
 		})
 	},
 
-	hasGeo : (user) => storage.getGeo(user).then((geo)=>!!geo),
-	getGeo : (user) => storage.get(`geo|${user}`),
-	setGeo : (user, geo) => storage.set(`geo|${user}`, geo),
-	delGeo : (user) => storage.del(`geo|${user}`),
+	hasGeo : (user) => Storage.getGeo(user).then((geo)=>!!geo),
+	getGeo : (user) => Storage.get(`geo|${user}`),
+	setGeo : (user, geo) => Storage.set(`geo|${user}`, geo),
+	delGeo : (user) => Storage.del(`geo|${user}`),
 
 	getGeos : (users)=>{
 		return Promise.all(_.map(users, (user)=>{
-				return storage.getGeo(user).then((geo)=>[user, geo])
+				return Storage.getGeo(user).then((geo)=>[user, geo])
 			}))
 			.then((pairs)=>_.fromPairs(pairs));
 	},
 
-	getMsgs : (user) => storage.get(`msg|${user}`),
-	setMsgs : (user, val) => storage.set(`msg|${user}`, val || []),
+	getMsgs : (user) => Storage.get(`msg|${user}`),
+	setMsgs : (user, val) => Storage.set(`msg|${user}`, val || []),
 	setMsg  : (user, msgObj) => {
-		return storage.getMsgs(user)
+		return Storage.getMsgs(user)
 			.then((msgs) => {
 				msgs = msgs || [];
 				msgs.push(msgObj);
-				return storage.setMsgs(user, msgs);
+				return Storage.setMsgs(user, msgs);
 			})
 	},
 
+	getPending : (id)=>Storage.set(`pending|${id}`),
+	delPending : (id)=>Storage.del(`pending|${id}`),
+	setPending : (id, msg, geo)=>Storage.set(`pending|${id}`, geo),
 
-	setPending : (id, msg, geo)=>{},
-	delPending : (id)=>{},
-	convertPending : (id)=>{}
 
 };

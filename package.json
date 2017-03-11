@@ -24,6 +24,7 @@
     "express": "^4.15.0",
     "lodash": "^4.17.4",
     "moment": "^2.17.1",
+    "mongoose": "^4.8.6",
     "nconf": "^0.8.4",
     "redis": "^2.6.5",
     "superagent": "^3.5.0",
