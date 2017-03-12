@@ -102,6 +102,12 @@ const Slack = {
 
 	on : (event, handler)=>{
 		return emitter.on(event, handler);
+	},
+
+	//TODO: Finish the logger to diagnostics
+	log : (...args)=>{
+		console.log('caller', arguments.callee.caller);
+		return Slack.msg('diagnostics', '```' + args.join(', ') + '```');
 	}
 }
 
