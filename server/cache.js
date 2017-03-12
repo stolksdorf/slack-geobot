@@ -1,14 +1,14 @@
 const _ = require('lodash');
 const redis = require('redis').createClient(process.env.REDIS_URL);
 
-const FIVE_MINS = 1000 * 60 * 5;
+const FIVE_MINS = 60 * 5;
 
 redis.on('error', (err)=>{
 	redis.end();
 	console.log('REDIS ERROR');
 });
 
-module.exports = Storage = {
+const cache = {
 	connect : ()=>{
 		//TODO: Implement a connection prototol
 		return Promise.resolve();
@@ -53,28 +53,35 @@ module.exports = Storage = {
 
 
 	//Geo
-	hasGeo : (user) => Storage.getGeo(user).then((geo)=>!!geo),
-	getGeo : (user) => Storage.get(`geo|${user}`),
-	setGeo : (user, lat, lon) => Storage.set(`geo|${user}`, { lat, lon, ts : _.now()}),
-	delGeo : (user) => Storage.del(`geo|${user}`),
+	hasGeo : (user) => cache.getGeo(user).then((geo)=>!!geo),
+	getGeo : (user) => cache.get(`geo|${user}`),
+	setGeo : (user, lat, lon) => cache.set(`geo|${user}`, { lat, lon, ts : _.now()}),
+	delGeo : (user) => cache.del(`geo|${user}`),
 
 	getGeos : (users)=>{
-		return Promise.all(_.map(users, (user)=>Storage.getGeo(user).then((geo)=>[user, geo])))
+		return Promise.all(_.map(users, (user)=>cache.getGeo(user).then((geo)=>[user, geo])))
 			.then((pairs)=>_.fromPairs(pairs));
 	},
 
 
 	//Pending
-	getPending : (id)=>Storage.set(`pending|${id}`),
-	delPending : (id)=>Storage.del(`pending|${id}`),
+	getPending : (id)=>cache.get(`pending|${id}`),
+	delPending : (id)=>cache.del(`pending|${id}`),
 	setPending : (id, msg)=>{
-		return Storage.set(`pending|${id}`, msg)
-			.then(()=>redis.expireat(`pending|${id}`, FIVE_MINS))
+		return cache.set(`pending|${id}`, msg)
+			.then(()=>redis.expire(`pending|${id}`, FIVE_MINS))
 	},
 
 	getAllPending : ()=>{
-
+		return new Promise((resolve, reject)=>{
+			redis.keys(`pending|*`, (err, keys)=>{
+				Promise.all(_.map(keys, (key)=>cache.get(key)))
+					.then((pending)=>resolve(pending))
+			})
+		})
 	}
 
 
 };
+
+module.exports = cache;

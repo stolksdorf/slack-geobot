@@ -63,6 +63,8 @@ const db = {
 				return _.filter(msgs, (msg) => utils.dist(geo, msg.geo) <= dist );
 			});
 	},
+
+	getAll : ()=>Geomessage.find({})
 };
 
 module.exports = db;

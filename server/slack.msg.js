@@ -4,9 +4,11 @@ const Slack = require('./slack.api.js');
 
 module.exports = {
 	setup : (user)=>{
-		return console.log(`Looks like you aren't sending up your GPS, let's get you setup`);
+		return Slack.msg(user,`Looks like your GPS isn't configured, let's get you setup.
 
-		return Slack.msg(user, '')
+
+`
+);
 	},
 
 	firstGeo : (user)=>{
