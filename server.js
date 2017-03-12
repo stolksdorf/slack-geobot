@@ -1,8 +1,5 @@
 const _ = require('lodash');
 
-const express = require('express');
-const app = express();
-
 const config = require('nconf')
 	.argv()
 	.env({ lowerCase: true })
@@ -10,32 +7,18 @@ const config = require('nconf')
 	.file('defaults', { file: 'config/default.json' });
 
 
-const Geobot = require('./geobot.js');
-const Storage = require('./storage.js');
+const express = require('express');
+const app = express();
 
-//////////////////////////
 
-app.get('/test', (req, res)=>{
-	Geobot.sendWelcome('scott');
-	return res.send();
-});
+const log = require('loglevel');
+//TODO: Add a Slack log message as a log level
 
-app.get('/clear', (req, res) => {
-	Storage.clearAll();
 
-	console.log('cleared!');
 
-	return res.send();
-});
 
-app.get('/msg/:user', (req, res)=>{
-	Geobot.checkMessagesForUser(req.params.user);
 
-	return res.send();
-})
-
-///////////////////`
-
+const Geobot = require('./server/geobot.js');
 
 
 app.get('/log/:user', (req, res) => {
