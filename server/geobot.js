@@ -21,15 +21,16 @@ const Geobot = {
 			.then(()=>console.log('Geobot ready!'))
 	},
 	msgHandler : (msg) =>{
-		const isCmd = msgHas(msg.text, ['geobot', Slack.botId]) && msg.user == 'scott';
+		const isCmd = utils.msgHas(msg.text, ['geobot', Slack.botId]) && msg.user == 'scott';
 		if(isCmd) return Commands.execute(msg);
 
 		return Geobot.parseMessage(msg)
 	},
-	reactionHandler : (msg)=>{
-		console.log('reaction', msg);
+	reactionHandler : (reaction)=>{
 
+		if(reaction.user == 'geobot') return;
 
+		console.log('reaction', reaction);
 
 
 	},
@@ -74,6 +75,7 @@ const Geobot = {
 	},
 
 	parseMessage : (msg)=>{
+		console.log('parsing');
 		return Cache.hasGeo(msg.user)
 			.then((hasGeo)=>{
 				if(!hasGeo) return Messages.setup(msg.user);

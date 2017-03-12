@@ -36,11 +36,9 @@ _sent on ${Moment(msg.ts).format('MMM Do H:mm')}_`
 	confirm : (user, recipients, text)=>{
 		if(typeof recipients == 'string') recipients = [recipients];
 		let confirmMsg;
-		return Slack.msg(user, `This message will be sent to ${recipients.join(', ')} when they get near your current location.
+		return Slack.msg(user, `This message will be sent to *${recipients.join(', ')}* when they get near your current location. React with a :thumbsup: if this looks good.
 
-> ${text}
-
-React with a :thumbsup: if this looks good.`)
+> ${text}`)
 			.then((msg)=>{ confirmMsg = msg})
 			.then(()=>Slack.react(confirmMsg, 'thumbsup'))
 			.then(()=>Slack.react(confirmMsg, 'thumbsdown'))

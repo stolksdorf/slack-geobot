@@ -12,18 +12,36 @@ const Commands = {
 			return Commands.listGeos();
 		}
 
+		if(utils.msgHas(msg.text, 'clear')){
+			return Commands.clear();
+		}
+
+		if(utils.msgHas(msg.text, ['add', 'set'])){
+			return Commands.addRandomGeo();
+		}
 	},
 
 	listGeos : ()=>{
 		return Cache.getGeos(Slack.users)
 			.then((geos, user)=>{
 				const text = _.map(geos, (geo, user)=>{
-					if(!geo) return `${user} : _none_`;
+					if(!geo) return `${user} : none`;
 
-					return `${user} : \`${geo.lat}, ${geo.lon}\` - _${Moment(geo.ts).fromNow()}_`;
+					return `${user} : ${geo.lat}, ${geo.lon} - ${Moment(geo.ts).fromNow()}`;
 				}).join('\n');
-				return Slack.msg('scott', text);
+				return Slack.msg('scott', '```' + text + '```');
 			});
+	},
+
+	clear : ()=>{
+		return Cache.clear()
+			.then(()=>Slack.msg('scott', '`cleared all geos`'));
+	},
+
+	addRandomGeo : ()=>{
+		return Cache.setGeo('scott', 43.987031, -80.438622)
+			.then(()=>Slack.msg('scott', '`Added a geo for you`'));
+
 	}
 
 

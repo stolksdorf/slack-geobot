@@ -1,6 +1,8 @@
 const _ = require('lodash');
 const redis = require('redis').createClient(process.env.REDIS_URL);
 
+const FIVE_MINS = 1000 * 60 * 5;
+
 redis.on('error', (err)=>{
 	redis.end();
 	console.log('REDIS ERROR');
@@ -27,8 +29,8 @@ module.exports = Storage = {
 		return new Promise((resolve, reject)=>{
 			redis.get(key, (err, res)=>{
 				if(err) return reject(err);
-				try{ return resolve(JSON.parse(json)); }
-				catch(e){ return resolve(json) };
+				try{ return resolve(JSON.parse(res)); }
+				catch(e){ return resolve(res) };
 			});
 		});
 	},
@@ -53,7 +55,7 @@ module.exports = Storage = {
 	//Geo
 	hasGeo : (user) => Storage.getGeo(user).then((geo)=>!!geo),
 	getGeo : (user) => Storage.get(`geo|${user}`),
-	setGeo : (user, geo) => Storage.set(`geo|${user}`, { lat : geo.lat, lon : geo.lon, ts : _.now()}),
+	setGeo : (user, lat, lon) => Storage.set(`geo|${user}`, { lat, lon, ts : _.now()}),
 	delGeo : (user) => Storage.del(`geo|${user}`),
 
 	getGeos : (users)=>{
@@ -65,7 +67,14 @@ module.exports = Storage = {
 	//Pending
 	getPending : (id)=>Storage.set(`pending|${id}`),
 	delPending : (id)=>Storage.del(`pending|${id}`),
-	setPending : (id, msg)=>Storage.set(`pending|${id}`, msg),
+	setPending : (id, msg)=>{
+		return Storage.set(`pending|${id}`, msg)
+			.then(()=>redis.expireat(`pending|${id}`, FIVE_MINS))
+	},
+
+	getAllPending : ()=>{
+
+	}
 
 
 };
