@@ -16,7 +16,7 @@ const Geobot = {
 		Slack.on('message', Geobot.msgHandler);
 		Slack.on('reaction_added', Geobot.reactionHandler);
 		return Cache.connect()
-			.then(()=>DB.connect)
+			.then(()=>DB.connect())
 			.then(()=>Slack.connect(config.get('slack_token'), config.get('bot')))
 			.then(()=>Geobot.checkOldGeos())
 			.then(()=>console.log('Geobot ready!'))
@@ -34,14 +34,12 @@ const Geobot = {
 		Cache.getPending(event.item.ts)
 			.then((pending)=>{
 				if(!pending) return;
-
 				//parse recicpents here
-
-				console.log('here', pending);
-
-
+				if(pending.recipients == 'anyone'){
+					pending.recipients = _.filter(Slack.users, (user)=>user !== pending.user);
+				}
 				return Cache.delPending(event.item.ts)
-					.then(()=>Geobot.storeMessage(pending.user, [pending.recipients], pending.text))
+					.then(()=>Geobot.storeMessage(pending.user, pending.recipients, pending.text))
 			})
 	},
 
@@ -92,7 +90,7 @@ const Geobot = {
 			.then((hasGeo)=>{
 				if(!hasGeo) return Messages.setup(msg.user);
 
-				const recipients = utils.getRecipients(msg.text);
+				const recipients = utils.getRecipients(msg.text, Slack.users);
 
 				return Messages.confirm(msg.user, recipients, msg.text)
 					.then((confirmMsg)=>Cache.setPending(confirmMsg.ts, {
@@ -102,30 +100,7 @@ const Geobot = {
 						id : confirmMsg.ts
 					}));
 			})
-
-		/*
-
-		Cache.setPending()
-
-		Messages.confirm(msg.user, [], geo, msg.text)
-			.then((confirmMsg)=>{
-				return Cache.setPending(confirmMsg.ts, )
-			})
-
-		//Store the message
-		//send the
-		*/
-
-	},
-
-
-	//dev
-	dm : Slack.directMessage
+	}
 };
-
-
-setTimeout(()=>{
-	//Geobot.storeGeo('scott', 45, 56);
-}, 500);
 
 module.exports = Geobot;

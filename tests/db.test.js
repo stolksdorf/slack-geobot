@@ -22,6 +22,7 @@ test.serial('Store a single message', (t)=>{
 	let text;
 	return msgA()
 		.then((msg)=>{
+			console.log('msg', msg);
 			text = msg.text;
 			return db.getMessagesForUser('userB')
 		})
@@ -70,4 +71,15 @@ test.serial('if last recipients removed, delete record', (t)=>{
 		.then((msgs)=>{
 			t.is(msgs.length, 0)
 		});
+});
+
+
+test.serial('should get all messages', (t)=>{
+
+	db.getAll()
+		.then((msgs)=>console.log(msgs))
+
+	t.pass();
+
+
 });
