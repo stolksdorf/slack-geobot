@@ -18,6 +18,7 @@ const Geobot = {
 		return Cache.connect()
 			.then(()=>DB.connect())
 			.then(()=>Slack.connect(config.get('slack_token'), config.get('bot')))
+			.then(()=>Slack.msg('diagnostics', 'Geobot rebooted.'))
 			.then(()=>Geobot.checkOldGeos())
 			.then(()=>console.log('Geobot ready!'))
 	},
