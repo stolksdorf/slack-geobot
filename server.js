@@ -19,6 +19,7 @@ const Geobot = require('./server/geobot.js');
 
 app.get('/:user', (req, res) => {
 	const user = req.params.user;
+	console.log('GPS from ', user);
 	Geobot.storeGeo(user, req.query.lat, req.query.lon);
 	return res.status(200).send('working');
 });

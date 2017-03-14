@@ -86,7 +86,7 @@ const Geobot = {
 	},
 
 	parseMessage : (msg)=>{
-		console.log('parsing');
+		console.log('parsing', msg);
 		return Cache.hasGeo(msg.user)
 			.then((hasGeo)=>{
 				if(!hasGeo) return Messages.setup(msg.user);
@@ -99,7 +99,13 @@ const Geobot = {
 						recipients : recipients,
 						text : msg.text,
 						id : confirmMsg.ts
-					}));
+					}))
+					.catch((err)=>{
+						Slack.log(`Err: ${err.toString()}`);
+						Slack.log(msg)
+						console.log('Attempted parse: ', err);
+						console.log(msg);
+					})
 			})
 	}
 };
