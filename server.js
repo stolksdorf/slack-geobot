@@ -12,7 +12,7 @@ const app = express();
 
 //Setup Slack logging
 const Slack = require('./server/slack.api.js');
-const log = require('picolog');
+const log = require('pico-log');
 
 log.trace = Slack.log;
 log.debug = Slack.log;
