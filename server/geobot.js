@@ -46,7 +46,7 @@ const Geobot = {
 	},
 
 	storeGeo : (user, lat, lon)=>{
-		log.debug('storing geo for', user);
+		//log.debug('storing geo for', user);
 		return Cache.hasGeo(user)
 			.then((hasGeo)=>{
 				if(!hasGeo) Messages.firstGeo(user);
