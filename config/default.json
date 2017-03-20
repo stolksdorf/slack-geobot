@@ -4,5 +4,6 @@
 	"bot" : {
 		"icon" : ":earth_americas:",
 		"name" : "geobot"
-	}
+	},
+	"loglevel": "debug"
 }

@@ -68,10 +68,8 @@ const Commands = {
 	},
 
 	listMsgs : ()=>{
-		console.log('HERE');
 		return DB.getAll()
 			.then((msgs)=>{
-				console.log("WHAT");
 				return Slack.msg('scott', '``` ' +
 					JSON.stringify(msgs, null, '  ')
 					+ ' ```'

@@ -53,7 +53,7 @@ _sent on ${Moment(msg.ts).format('MMM Do H:mm')}_`
 > ${text}`)
 			.then((msg)=>{ confirmMsg = msg})
 			.then(()=>Slack.react(confirmMsg, 'thumbsup'))
-			.then(()=>Slack.react(confirmMsg, 'thumbsdown'))
+			//.then(()=>Slack.react(confirmMsg, 'thumbsdown'))
 			.then(()=>confirmMsg);
 	},
 

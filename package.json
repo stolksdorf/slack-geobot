@@ -23,10 +23,10 @@
   "dependencies": {
     "express": "^4.15.0",
     "lodash": "^4.17.4",
-    "loglevel": "^1.4.1",
     "moment": "^2.17.1",
     "mongoose": "^4.8.6",
     "nconf": "^0.8.4",
+    "pico-log": "^1.0.0",
     "redis": "^2.6.5",
     "superagent": "^3.5.0",
     "ws": "^2.2.0"

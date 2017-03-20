@@ -1,5 +1,6 @@
 const request = require('superagent');
 const _ = require('lodash');
+const path = require('path');
 const WebSocket = require('ws');
 
 const emitter = new (require('events'))();
@@ -35,22 +36,48 @@ const processIncomingEvent = (msg)=>{
 	return res;
 };
 
+const log = (color, ...args)=>{
+	if(!Slack.connected) return;
+	Error.prepareStackTrace = (err, stack)=>stack;
+	const caller = (new Error()).stack[1];
+	const fileName = path.relative(process.cwd(), caller.getFileName());
+	const lineNumber = caller.getLineNumber();
+
+	const text = _.map(args, (arg)=>{
+		if(arg instanceof Error) return arg.toString();
+		return JSON.stringify(arg, null, '  ')
+	}).join(', ');
+
+	return Slack.api('chat.postMessage', {
+		channel    : 'diagnostics',
+		username   : Slack.botInfo.name,
+		icon_emoji : Slack.botInfo.icon,
+		attachments: JSON.stringify([{
+			color     : color,
+			text      : '```' + text + '```',
+			mrkdwn_in : ['text'],
+			footer : `${fileName}:${lineNumber}`
+		}])
+	}).catch(()=>{})
+}
 
 const Slack = {
+	connected : false,
+
 	channels : {},
 	users    : {},
 	dms      : {},
 
 	botId    : '',
 	token : '',
-	info : {
+	botInfo : {
 		name : 'bot',
 		icon :':robot:'
 	},
 
 	connect : (token, botInfo)=>{
 		Slack.token = token;
-		Slack.info = botInfo;
+		Slack.botInfo = botInfo;
 
 		return Slack.api('rtm.start')
 			.then((data) => {
@@ -68,6 +95,7 @@ const Slack = {
 					});
 				});
 			})
+			.then(()=>Slack.connected = true)
 	},
 
 	api : (command, payload) => {
@@ -88,8 +116,8 @@ const Slack = {
 		return Slack.api('chat.postMessage', {
 			channel    : (dm || target),
 			text       : text,
-			username   : Slack.info.name,
-			icon_emoji : Slack.info.icon
+			username   : Slack.botInfo.name,
+			icon_emoji : Slack.botInfo.icon
 		})
 	},
 	react : (msg, emoji)=>{
@@ -104,11 +132,12 @@ const Slack = {
 		return emitter.on(event, handler);
 	},
 
-	//TODO: Finish the logger to diagnostics
-	log : (...args)=>{
-		console.log('caller', arguments.callee.caller);
-		return Slack.msg('diagnostics', '```' + args.join(', ') + '```');
-	}
+
+	log : log.bind(null, ''),
+	info : log.bind(null, 'good'),
+	warn : log.bind(null, 'warning'),
+	error : log.bind(null, 'danger'),
 }
+
 
 module.exports = Slack;

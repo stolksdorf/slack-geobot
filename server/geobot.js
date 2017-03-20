@@ -1,6 +1,7 @@
 const _ = require('lodash');
 const config = require('nconf');
 const Moment = require('moment');
+const log = require('pico-log');
 
 const Messages = require('./slack.msg.js');
 const Commands = require('./commands.js');
@@ -18,9 +19,9 @@ const Geobot = {
 		return Cache.connect()
 			.then(()=>DB.connect())
 			.then(()=>Slack.connect(config.get('slack_token'), config.get('bot')))
-			.then(()=>Slack.msg('diagnostics', 'Geobot rebooted.'))
 			.then(()=>Geobot.checkOldGeos())
-			.then(()=>console.log('Geobot ready!'))
+			.then(()=>log.info('Geobot rebooted!'))
+			.then(()=>log.debug(Slack.users, Slack.connected))
 	},
 	msgHandler : (msg) =>{
 		const isCmd = utils.msgHas(msg.text, ['geobot', Slack.botId]) && msg.user == 'scott';
@@ -45,7 +46,7 @@ const Geobot = {
 	},
 
 	storeGeo : (user, lat, lon)=>{
-		console.log('storing geo for', user);
+		log.debug('storing geo for', user);
 		return Cache.hasGeo(user)
 			.then((hasGeo)=>{
 				if(!hasGeo) Messages.firstGeo(user);
@@ -54,11 +55,11 @@ const Geobot = {
 			.then(()=>Geobot.checkMessagesForUser(user));
 	},
 	storeMessage : (user, recipients, text)=>{
-		console.log('storing message');
+		log.debug('storaging message', user, recipients, text);
 		return Cache.getGeo(user)
 			.then((geo)=>DB.storeMessage(user, geo, recipients, text))
 			.then(()=>Messages.msgStored(user))
-			.catch((err)=>console.log(err))
+			.catch((err)=>log.error(err));
 	},
 
 	checkMessagesForUser : (user)=>{
@@ -82,11 +83,12 @@ const Geobot = {
 					//const isOld = Moment(geo.ts).isAfter(Moment().subtract(1, 'hours'));
 					//if(isOld) return Cache.delGeo(user).then(()=>Messages.oldGeo(user));
 				}));
-			}).catch((err)=>console.log(err))
+			})
+			.catch((err)=>log.error(err));
 	},
 
 	parseMessage : (msg)=>{
-		console.log('parsing', msg);
+		log.debug('parsing', msg);
 		return Cache.hasGeo(msg.user)
 			.then((hasGeo)=>{
 				if(!hasGeo) return Messages.setup(msg.user);
@@ -100,12 +102,7 @@ const Geobot = {
 						text : msg.text,
 						id : confirmMsg.ts
 					}))
-					.catch((err)=>{
-						Slack.log(`Err: ${err.toString()}`);
-						Slack.log(msg)
-						console.log('Attempted parse: ', err);
-						console.log(msg);
-					})
+					.catch((err)=>log.error(err));
 			})
 	}
 };
