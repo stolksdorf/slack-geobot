@@ -34,8 +34,9 @@ module.exports = {
 `*${msg.author}* says:
 > ${msg.text}
 
-_sent on ${Moment(msg.ts).format('MMM Do H:mm')}_`
-		);
+_stroed on ${Moment(msg.ts).format('MMM Do H:mm')}_`
+		)
+		.then(()=>Slack.msg(msg.author,`${user} just triggered one of your messages!`))
 
 	},
 
