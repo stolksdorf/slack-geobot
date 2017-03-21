@@ -91,6 +91,7 @@ const Slack = {
 						const msg = JSON.parse(rawData);
 						if(msg.bot_id === Slack.botId) return;
 						const message = processIncomingEvent(msg);
+						if(message.type == 'message') console.log(message);
 						emitter.emit(message.type, message);
 					});
 				});
