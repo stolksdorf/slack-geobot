@@ -49,7 +49,10 @@ const Geobot = {
 		//log.debug('storing geo for', user);
 		return Cache.hasGeo(user)
 			.then((hasGeo)=>{
-				if(!hasGeo) Messages.firstGeo(user);
+				if(!hasGeo){
+					log.debug('first geo got!', user)
+					return Messages.firstGeo(user);
+				}
 			})
 			.then(()=>Cache.setGeo(user, lat, lon))
 			.then(()=>Geobot.checkMessagesForUser(user));
@@ -91,7 +94,11 @@ const Geobot = {
 		log.debug('parsing', msg);
 		return Cache.hasGeo(msg.user)
 			.then((hasGeo)=>{
-				if(!hasGeo) return Messages.setup(msg.user);
+				if(!hasGeo){
+					log.debug('No geo', msg.user);
+					return Messages.setup(msg.user)
+						.then(()=>log.debug('Sent setup message', msg.user))
+				}
 
 				const recipients = utils.getRecipients(msg.text, Slack.users);
 
@@ -102,8 +109,8 @@ const Geobot = {
 						text : msg.text,
 						id : confirmMsg.ts
 					}))
-					.catch((err)=>log.error(err));
 			})
+			.catch((err)=>log.error(err));
 	}
 };
 
